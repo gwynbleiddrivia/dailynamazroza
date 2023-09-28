@@ -3,8 +3,12 @@ import useFetchTime from '../customHooks/useFetchTime'
 import LiveClock from './LiveClock'
 import Translator from './Translator.jsx'
 import coords from './coords.json'
+import months from './months.json'
+import arabic_months from './arabic_months.json'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css';
+import { getDate } from 'bangla-calendar';
+
 
 
 const Home = () => {
@@ -15,6 +19,11 @@ const Home = () => {
 	const yearToday = today.getFullYear()
 	
 	console.log(`${dayToday} - ${monthToday} - ${yearToday}`)
+	
+	const bengaliYear = getDate(today).split(',')[2]
+	const bengaliDate = getDate(today).split(',')[1]
+	
+	console.log(getDate(today))
 
 	const [year, setYear] = useState(yearToday)
 	const [month, setMonth] = useState(monthToday)
@@ -32,11 +41,68 @@ const Home = () => {
 	console.log(dayToday, monthToday, yearToday)
 
 
-
 	let [fetchTime, refetch] = useFetchTime(year, month, lat, long)
-	console.log(fetchTime)
+	//const dayTimings = fetchTime?.data?.find((singledate)=>singledate.date.gregorian.day === daySelect)
+	const dayTimings = fetchTime?.data?.[daySelect-1].timings
+	const dayDateDetails = fetchTime?.data?.[daySelect-1].date
+
+	console.log(dayDateDetails)
+	
+	const weekday = dayDateDetails?.gregorian?.weekday?.en
+	let t_weekday;
+	if(weekday){
+		t_weekday = Translator(weekday)
+	}
+	
+	
+	const hijriday = dayDateDetails?.hijri?.day
+	let t_hijriday;
+	if(hijriday){
+		t_hijriday = Translator(hijriday)
+	}
+	
+	
+	const hijrimonth = dayDateDetails?.hijri?.month?.number
+	const t_hijrimonth =  arabic_months[hijrimonth]	
 	
 
+	const hijriyear = dayDateDetails?.hijri?.year
+	let t_hijriyear;
+	if(hijriyear){
+		t_hijriyear = Translator(hijriyear)
+	}
+	
+
+
+
+
+
+
+
+
+	const modifiedTimings = {}
+
+	for (const key in dayTimings){
+		if (Object.hasOwnProperty.call(dayTimings, key)) {
+			const element = dayTimings[key]
+			const hours = Number(element.slice(0,2))
+			
+			const amHours = hours - 12
+			const strAmHours = amHours  + ""
+
+			if (hours > 12){
+				modifiedTimings[key] = Translator( `${ strAmHours   + element.slice(2,5)}`)
+
+			} else{
+				modifiedTimings[key] = Translator(`${element.slice(0,5)}`);
+			}
+		}
+
+	}
+
+
+
+	console.log(modifiedTimings)
 
 	const handleDateChange = (date) => {
 		setSelectedDate(date)
@@ -98,7 +164,7 @@ const Home = () => {
 				<div className="w-fit font-siyam-rupali">
 					{/*Dropdown code starts here*/}
 					
-						<select id="districtSelect" onChange={handleDistChange} className="font-siyam-rupali text-4xl w-full">
+						<select id="districtSelect" onChange={handleDistChange} className="font-siyam-rupali text-4xl w-full rounded px-2 py-1">
 
 							{
 
@@ -210,13 +276,24 @@ const Home = () => {
 			{/*Third div starts here*/}
 				<div className="text-xl flex justify-between w-11/12 mx-auto">
 					<div className="justify-first">
-						সূর্যোদয় 
+						সূর্যোদয়      {modifiedTimings.Sunrise}
 					</div>
 					<div className="justify-center">
-						আজ
+						আজ  
+						<div className="w-2 inline-block"></div>
+						{t_weekday}, {Translator(dayToday+"")} {  months[(monthToday + "")]}, {Translator(yearToday+"")} 
+						<div className="w-2 inline-block"></div>
+						খ্রিস্টাব্দ         
+						|      {bengaliDate}, {bengaliYear} 
+						<div className="w-2 inline-block"></div>
+						বঙ্গাব্দ       
+						|   {t_hijriday} {t_hijrimonth}, {t_hijriyear}
+						<div className="w-2 inline-block"></div>
+						হিজরি
 					</div>
 					<div className="justify-end">
-						সূর্যাস্ত
+						সূর্যাস্ত          {
+modifiedTimings.Sunset}
 					</div>
 				</div>
 			{/*Third div ends here*/}
