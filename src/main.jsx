@@ -2,6 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 
+
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+
+
 import Home from './components/Home'
 import Main from './layout/Main'
 
@@ -12,7 +16,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-
+const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
   {
@@ -21,7 +25,7 @@ const router = createBrowserRouter([
     children: [
 	{
 		path: "/",
-		element: <Home></Home>
+		element: <Home></Home>,
 	}
     ]
   },
@@ -29,6 +33,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-      <RouterProvider router={router} />
+	<QueryClientProvider client={queryClient}>
+		<div className="max-w-7xl mx-auto">
+      		<RouterProvider router={router} />
+		</div>
+	</QueryClientProvider>
+
   </React.StrictMode>,
 )
